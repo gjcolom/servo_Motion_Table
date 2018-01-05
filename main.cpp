@@ -1247,7 +1247,7 @@ void runMotionTable()
 				}//end switch
 			}// end if manual operation
 			kalCounter = (kalCounter + 1)%kalFraction;
-			if(!kalCounter) printf("KalX: %f \t KalY: %f\n", kalAngle[X_], kalAngle[Y_]);
+			if(!kalCounter) printf("Roll: %f \t Pitch: %f\n", kalAngle[Y_], kalAngle[X_]);
 			motionTableUpdate();
 			
 			#if READING_RX
