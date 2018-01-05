@@ -52,8 +52,8 @@ Co: Jezreel Saltar Vega, communication protocol and original arduino software
 #define MOTION_W2  10.0   //Distance between radial point 2 and middle of both radial points of motion platform
 #define MOTION_H2  89.85  //Perpendicular distance between center origin and radial point 2
 #define ALPHA_NUM  3      //Number of radial pairs
-#define ROLL_MAX   20.0   //Abs bounds for max roll angle
-#define PITCH_MAX  20.0   //Abs bounds for max pitch angle
+#define ROLL_MAX   30.0   //Abs bounds for max roll angle
+#define PITCH_MAX  30.0   //Abs bounds for max pitch angle
 #define YAW_MAX    25.0   //Abs bounds for max yaw angle
 #define DELTAZ_MAX 40.0   //Abs bounds for max deltaZ
 #define A_ARM      320.0  //Length of swinging arm
@@ -247,8 +247,8 @@ double pitch_error;
 double pitch_derivative;
 
 double Kp = 0.5;       //proportional constant
-double Ki = 3.0;        //integral constant
-double Kd = 0.000015;        //derivative constant
+double Ki = 4.5;        //integral constant
+double Kd = 0.000250;        //derivative constant
 
 //Tilt Protection Variables
 bool tilt = false;
@@ -293,6 +293,7 @@ void 	menuStartText();						//Display Main Menu Page
 void 	menuSimulationText();					//Display Simulation Menu Page
 void 	menuManualModeText();					//Display Manual Mode Menu Page
 void 	runMotionTable();						//Send and Receive Data between RPi and Arduino, using update functions, do the thing
+void 	menuSettingsText();						//display text for settings menu
 
 //--------------------------------------------------------------------------------------------
 //SPI Communications
@@ -891,7 +892,7 @@ void userInterface()
 				do {
 					menuStartText();
     				cin >> userInput;
-    				validInput = inputValid(menusSelectionValidIns, 3, userInput);
+    				validInput = inputValid(menusSelectionValidIns, 4, userInput);
     			} while (!validInput);
     			intInput = userInputToInt(userInput);
     			previousPage = menuPage;
@@ -903,61 +904,61 @@ void userInterface()
     				menuSimulationText();
     				cin >> userInput;
     				validInput = inputValid(menusSelectionValidIns, 6, userInput);
-    			} while (!validInput);
-    			intInput = userInputToInt(userInput);
+	    		} while (!validInput);
+	    		intInput = userInputToInt(userInput);
 
 				switch(intInput)
 				{
 					case 1: //Change Input to Boat Controller
-					simulationInputType = BOAT_CONTROLLER_INPUT;
-					menuPage = 1;
-					break;
+						simulationInputType = BOAT_CONTROLLER_INPUT;
+						menuPage = 1;
+						break;
 
 					case 2: //Change Input joysticks
-					simulationInputType = JOYSTICK_INPUT;
-					menuPage = 1;
-					break;
+						simulationInputType = JOYSTICK_INPUT;
+						menuPage = 1;
+						break;
 
 					case 3: //Change Duration
-					printf("\n\nEnter number of minutes (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
-					cin >> minutesDuration;
-					printf("\n\nEnter number of seconds (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
-					cin >> secondsDuration;
-					if(60*minutesDuration + secondsDuration > maximumDuration/1000) motionDurationMillis = maximumDuration;
-					else motionDurationMillis = minutesDuration*60*1000 + secondsDuration*1000;
-					menuPage = 1;
-					break;
+						printf("\n\nEnter number of minutes (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
+						cin >> minutesDuration;
+						printf("\n\nEnter number of seconds (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
+						cin >> secondsDuration;
+						if(60*minutesDuration + secondsDuration > maximumDuration/1000) motionDurationMillis = maximumDuration;
+						else motionDurationMillis = minutesDuration*60*1000 + secondsDuration*1000;
+						menuPage = 1;
+						break;
 
 					case 4: //Toggle Logging Status
-					dataLoggingEnabled = !dataLoggingEnabled;
-					menuPage = 1;
-					break;
+						dataLoggingEnabled = !dataLoggingEnabled;
+						menuPage = 1;
+						break;
 
 					case 5: //Run Simulation
-					system("clear");
-					programState = SIMULATION;				//Put program into simulation mode, to be read by runMotionTable()
-					printf("\nRunning Simulation\n");
-					//Running 
-					runMotionTable();
-					printf("\n\nSimulation Complete!\n\nContinue y/n?");
-					while(pause)
-					{
-						cin >> userInput;
-						if(userInput == 'y'||userInput == 'Y') pause = false;
-						if(userInput == 'n'||userInput == 'N')
+						system("clear");
+						programState = SIMULATION;				//Put program into simulation mode, to be read by runMotionTable()
+						printf("\nRunning Simulation\n");
+						//Running 
+						runMotionTable();
+						printf("\n\nSimulation Complete!\n\nContinue y/n?");
+						while(pause)
 						{
-							pause = false;
-							finalSelection = true;
-						}
-					}//end pause while
+							cin >> userInput;
+							if(userInput == 'y'||userInput == 'Y') pause = false;
+							if(userInput == 'n'||userInput == 'N')
+							{
+								pause = false;
+								finalSelection = true;
+							}
+						}//end pause while
 
-					menuPage = 1;
-					break;
+						menuPage = 1;
+						break;
 
 					case 6: //back to tMain menu
-					menuPage = 0;
-					break;
-				}//edn switch
+						menuPage = 0;
+						break;
+				}//end switch
 				break;
 
     		case 2: //Manual Operation Mode
@@ -965,90 +966,122 @@ void userInterface()
     				menuManualModeText();
     				cin >> userInput;
     				validInput = inputValid(menusSelectionValidIns, 6, userInput);
-    			} while (!validInput);
-    			intInput = userInputToInt(userInput);
-    			switch(intInput)
-    			{
-    				case 1: //Angle Hold
-    				manualModeType = MANUAL_ANGLE_HOLD;
-    				printf("\n\nEnter number Roll Angle (%ddeg Maximum): ", (int)(maxRoll));
-    				printf("Previously: %f \n",holdAngles[ROLL] );
-					cin >> inRoll;
-					holdAngles[ROLL] = inRoll;
-					if(inRoll>maxRoll) holdAngles[ROLL] = maxRoll;
-					if(inRoll<-maxRoll) holdAngles[ROLL] = -maxRoll;
+    				} while (!validInput);
+    				intInput = userInputToInt(userInput);
+    				switch(intInput)
+    				{
+	    				case 1: //Angle Hold
+		    				manualModeType = MANUAL_ANGLE_HOLD;
+		    				printf("\n\nEnter number Roll Angle (%ddeg Maximum): ", (int)(maxRoll));
+		    				printf("Previously: %f \n",holdAngles[ROLL] );
+							cin >> inRoll;
+							holdAngles[ROLL] = inRoll;
+							if(inRoll>maxRoll) holdAngles[ROLL] = maxRoll;
+							if(inRoll<-maxRoll) holdAngles[ROLL] = -maxRoll;
 
-					printf("\n\nEnter number Pitch Angle (%ddeg Maximum): ", (int)(maxPitch));
-					printf("Previously: %f \n",holdAngles[PITCH] );
-					cin >> inPitch;
-					holdAngles[PITCH] = inPitch;
-					if(inPitch>maxPitch) holdAngles[PITCH] = maxPitch;
-					if(inPitch<-maxPitch) holdAngles[PITCH] = -maxPitch;
+							printf("\n\nEnter number Pitch Angle (%ddeg Maximum): ", (int)(maxPitch));
+							printf("Previously: %f \n",holdAngles[PITCH] );
+							cin >> inPitch;
+							holdAngles[PITCH] = inPitch;
+							if(inPitch>maxPitch) holdAngles[PITCH] = maxPitch;
+							if(inPitch<-maxPitch) holdAngles[PITCH] = -maxPitch;
 
-					printf("\n\nEnter number Yaw Angle (%ddeg Maximum): ", (int)(maxYaw));
-					printf("Previously: %f \n",holdAngles[YAW] );
-					cin >> inYaw;
-					holdAngles[YAW] = inYaw;
-					if(inYaw>maxYaw) holdAngles[YAW] = maxYaw;
-					if(inYaw<-maxYaw) holdAngles[YAW] = -maxYaw;
+							printf("\n\nEnter number Yaw Angle (%ddeg Maximum): ", (int)(maxYaw));
+							printf("Previously: %f \n",holdAngles[YAW] );
+							cin >> inYaw;
+							holdAngles[YAW] = inYaw;
+							if(inYaw>maxYaw) holdAngles[YAW] = maxYaw;
+							if(inYaw<-maxYaw) holdAngles[YAW] = -maxYaw;
 
-					printf("\n\nEnter number z displacement (%d in mm): ", (int)(maxZ));
-					printf("Previously: %f \n",holdAngles[DELTAZ] );
-					cin >> inZ;
-					holdAngles[DELTAZ] = inZ;
-					if(inZ>maxZ) holdAngles[DELTAZ] = maxZ;
-					if(inZ<-maxZ) holdAngles[DELTAZ] = -maxZ;
+							printf("\n\nEnter number z displacement (%d in mm): ", (int)(maxZ));
+							printf("Previously: %f \n",holdAngles[DELTAZ] );
+							cin >> inZ;
+							holdAngles[DELTAZ] = inZ;
+							if(inZ>maxZ) holdAngles[DELTAZ] = maxZ;
+							if(inZ<-maxZ) holdAngles[DELTAZ] = -maxZ;
 
+	    					menuPage = 2;
+    						break;
 
-    				menuPage = 2;
-    				break;
+    					case 2: //Joystick Control
+		    				manualModeType = MANUAL_JOYSTICK_INPUT;
+		    				menuPage = 2;
+		    				break;
 
-    				case 2: //Joystick Control
-    				manualModeType = MANUAL_JOYSTICK_INPUT;
-    				menuPage = 2;
-    				break;
+	    				case 3: //Change Duration
+							printf("\n\nEnter number of minutes (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
+							cin >> minutesDuration;
+							printf("\n\nEnter number of seconds (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
+							cin >> secondsDuration;
+							if(60*minutesDuration + secondsDuration > maximumDuration/1000) motionDurationMillis = maximumDuration;
+							else motionDurationMillis = minutesDuration*60*1000 + secondsDuration*1000;
+							menuPage = 2;
+							break;
 
-    				case 3: //Change Duration
-					printf("\n\nEnter number of minutes (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
-					cin >> minutesDuration;
-					printf("\n\nEnter number of seconds (%dmin Maximum): ", (int)(maximumDuration/(60*1000)));
-					cin >> secondsDuration;
-					if(60*minutesDuration + secondsDuration > maximumDuration/1000) motionDurationMillis = maximumDuration;
-					else motionDurationMillis = minutesDuration*60*1000 + secondsDuration*1000;
-					menuPage = 2;
-					break;
+						case 4: //Run Table
+							system("clear");
+							printf("\nRunning Motion Table Manual Mode: \n");
+							printf("Manual Mode: ");
+							if(manualModeType == MANUAL_ANGLE_HOLD) printf("Angle Hold at:\nRoll %f, Pitch %f, Yaw %f, z %f\n",
+								holdAngles[ROLL],holdAngles[PITCH],holdAngles[YAW],holdAngles[DELTAZ] );
+							if(manualModeType == MANUAL_JOYSTICK_INPUT) printf("Joystick Control\n");
+							programState = MANUAL;				//Put program into manual mode, to be read by runMotionTable()
+							runMotionTable();
+							printf("\n\nRun Complete!\n\nContinue y/n?");
+							while(pause)
+							{
+								cin >> userInput;
+								if(userInput == 'y'||userInput == 'Y') pause = false;
+								if(userInput == 'n'||userInput == 'N')
+								{
+									pause = false;
+									finalSelection = true;
+								}
+							}//end pause while
+							menuPage = 2;
+						break;
 
-					case 4: //Run Table
-					system("clear");
-					printf("\nRunning Motion Table Manual Mode: \n");
-					printf("Manual Mode: ");
-					if(manualModeType == MANUAL_ANGLE_HOLD) printf("Angle Hold at:\nRoll %f, Pitch %f, Yaw %f, z %f\n",
-						holdAngles[ROLL],holdAngles[PITCH],holdAngles[YAW],holdAngles[DELTAZ] );
-					if(manualModeType == MANUAL_JOYSTICK_INPUT) printf("Joystick Control\n");
-					programState = MANUAL;				//Put program into manual mode, to be read by runMotionTable()
-					runMotionTable();
-					printf("\n\nRun Complete!\n\nContinue y/n?");
-					while(pause)
-					{
-						cin >> userInput;
-						if(userInput == 'y'||userInput == 'Y') pause = false;
-						if(userInput == 'n'||userInput == 'N')
-						{
-							pause = false;
-							finalSelection = true;
-						}
-					}//end pause while
-
-					menuPage = 2;
-					break;
-
-					case 5: //back to tMain menu
-					menuPage = 0;
-					break;
-    			}//end switch
+						case 5: //back to Main menu
+							menuPage = 0;
+							break;
+    				}//end switch
     			break;
 
-    		case 3:  //Exit
+    		case 3: //Settings
+    			do {
+    				menuSettingsText();
+    				cin >> userInput;
+    				validInput = inputValid(menusSelectionValidIns, 4, userInput);
+	    			} while (!validInput);
+	    			intInput = userInputToInt(userInput);
+	    			printf("\nChanges will not be saved after this session ends.\n");
+	    			switch(intInput)
+	    			{
+	    				case 1: //Proportional Gain
+		    				printf("Current Proportional Gain: %f\nEnter new value:", Kp );
+		    				cin >> Kp;
+		    				menuPage = 3;
+		    				break;
+
+	    				case 2: //Integral Gain
+		    				printf("Current Integral Gain: %f\nEnter new value:", Ki );
+		    				cin >> Ki;
+		    				menuPage = 3;
+		    				break;
+
+	    				case 3: //Derivative Gain
+		    				printf("Current Derivative Gain: %f\nEnter new value:", Kd );
+		    				cin >> Kd;
+		    				menuPage = 3;
+		    				break;
+
+	    				case 4: //back tto main menu
+		    				menuPage = 0;
+		    				break;
+	    			}//end settings swtich
+    			break;
+
+    		case 4:  //Exit
     			finalSelection = true;
     			break;
 
@@ -1078,7 +1111,7 @@ void menuStartText()
 	system("clear");
 	printf("-------------------------------Virtual Solar Boat-----------------------------\n\n\n");
 	printf("Please make a numerical selection: \n");
-	printf("1. Simulation Mode \n2. Manual Operation\n3. Exit to Raspbian\n\n");
+	printf("1. Simulation Mode \n2. Manual Operation\n3. Settings \n4. Exit to Raspbian\n\n");
 	printf("Selection:");
 }//end menuStartText()
 
@@ -1115,6 +1148,19 @@ void menuManualModeText()
 	printf("Selection:");
 }//end menuStartText()
 
+//Menu Text for Settings
+void menuSettingsText()
+{
+	system("clear");
+	printf("------------------------------------Settings---------------------------------\n\n\n");
+	printf("Settings: ");
+	printf("\n\n");
+	printf("Please make a numerical selection: \n");
+	printf("1. Proportional Gain: %f \n2. Integral Gain: %f \n3. Derivative Gain: %f \n4. Back\n\n", Kp, Ki, Kd );
+	printf("Selection:");
+}//end menuSettingsText()
+
+//Run motion table algorithms, activate servos, calculate kinematics
 void runMotionTable()
 {
 	//Function Variable Declarations
@@ -1124,6 +1170,7 @@ void runMotionTable()
 	bool spiEnabled = true;
 	int  startDelay = 1000000;     //Microseconds to give to position servos
 	tilt = false;
+	int  kalCounter = 0, kalFraction = 30; //for displaying kalAngles every tenth turn
 	//Reset PID memory
 	roll_error_prior = 0;  //previous diff between ref and actual roll
 	roll_integral = 0;   //previous roll integral
@@ -1199,6 +1246,8 @@ void runMotionTable()
 					break;
 				}//end switch
 			}// end if manual operation
+			kalCounter = (kalCounter + 1)%kalFraction;
+			if(!kalCounter) printf("KalX: %f \t KalY: %f\n", kalAngle[X_], kalAngle[Y_]);
 			motionTableUpdate();
 			
 			#if READING_RX
