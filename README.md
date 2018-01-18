@@ -4,5 +4,5 @@ This git contains working source files for the Virtual Solar Boat servo driven m
 
 This code servos as a good restore point.
 
-Necessary Kalman Filter Library for updating Arduino Script
+Necessary Kalman Filter Library for updating Arduino Script:
 https://github.com/TKJElectronics/KalmanFilter
