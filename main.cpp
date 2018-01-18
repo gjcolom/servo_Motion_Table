@@ -718,7 +718,7 @@ void motionTableUpdate()
 
 
 	//Tilt Protection
-	if (abs(rollOutputDeg) > 3*ROLL_MAX || abs(pitchOutputDeg) > 3*PITCH_MAX || 
+	if (abs(rollOutputDeg) > 3*ROLL_MAX || abs(pitchOutputDeg) > 3*PITCH_MAX ||
 		abs(deltaZOutput) > DELTAZ_MAX || abs(yawOutput) > YAW_MAX)
 	{
 		if (!tilt) tiltCountdown = tiltCount;
@@ -938,7 +938,7 @@ void userInterface()
 						system("clear");
 						programState = SIMULATION;				//Put program into simulation mode, to be read by runMotionTable()
 						printf("\nRunning Simulation\n");
-						//Running 
+						//Running
 						runMotionTable();
 						printf("\n\nSimulation Complete!\n\nContinue y/n?");
 						while(pause)
@@ -1180,12 +1180,12 @@ void runMotionTable()
 	//Reset Values
 	for (int i = 0; i < 12; ++i)
 	{
-		if(i<5)inputMean[i] = 0;		
+		if(i<5)inputMean[i] = 0;
 		if(i<7)servoGammas[i]=0;
 		if(i<7)servoValuesCurrent[i] = servoZeroValues[i];
 		if(programState == SIMULATION)xState[i] = x_0[i];
 	}//end reset values loop
-	
+
 	if(spiEnabled) spiTransaction();    //Zero Servos before begining
 	usleep(startDelay); 					//Delay before running updates
 	endTime += startDelay/1000;				//ajust end time milliseconds
@@ -1249,7 +1249,7 @@ void runMotionTable()
 			kalCounter = (kalCounter + 1)%kalFraction;
 			if(!kalCounter) printf("Roll: %f \t Pitch: %f\n", kalAngle[Y_], kalAngle[X_]);
 			motionTableUpdate();
-			
+
 			#if READING_RX
 			printf("\n");
 			for (int i = 0; i < 7; i++)
@@ -1258,7 +1258,7 @@ void runMotionTable()
 			}//end for printing servo
 			printf("\n");
 			#endif
-			
+
 		}//end if time to do the things
 	}while((millis()<endTime)&& !tilt); //durationn has not expired, or table not tilted
 	if(tilt) printf("\nMotion Table Exceeded Safe Limits\n");
