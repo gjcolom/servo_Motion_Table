@@ -1,4 +1,4 @@
-# servo_Motion_Table
+# Virtual Solar Boat Servo Motion Table
 
 This git contains working source files for the Virtual Solar Boat servo driven motion table. Feel free to branch from these files to make your own modifications.
 
